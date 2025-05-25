@@ -17,12 +17,14 @@ func WithOutput(output io.Writer) Option {
 	}
 }
 
+// AddLogMessageOptions adds log message configuring options to logger object
 func AddLogMessageOptions(funcs ...LogMessageOption) Option {
 	return func(lgr *Logger) {
 		lgr.msgFormattingOptions = funcs
 	}
 }
 
+// Adds log level based prefix to each log, like [ERROR], [INFO] etc
 func AddPrefixBasedOnLogLevel() LogMessageOption {
 	return func(msg string, lvl Level) string {
 		if logPrefix, ok := logPrefixMap[lvl]; ok {
@@ -32,6 +34,7 @@ func AddPrefixBasedOnLogLevel() LogMessageOption {
 	}
 }
 
+// Adds date to each log 
 func AddDate() LogMessageOption {
 	return func(msg string, lvl Level) string {
 		return fmt.Sprintf("%s| %s", time.Now().Format(time.RFC3339), msg)
