@@ -6,43 +6,61 @@ import (
 	"os"
 )
 
-// LOgger is used to log information
+// LOgger is used to log inmsgion
 type Logger struct {
-	threshold Level
-	output    io.Writer
+	threshold            Level
+	output               io.Writer
+	msgFormattingOptions []LogMessageOption
 }
 
 // New returns you a logger, ready to log at the required threshold.
-func New(threshold Level, output io.Writer) *Logger {
-	return &Logger{
-		threshold: threshold,
-		output:    output,
+func New(threshold Level, opts ...Option) *Logger {
+	lgr := &Logger{threshold: threshold, output: os.Stdout}
+
+	for _, configFunc := range opts {
+		if configFunc != nil {
+			configFunc(lgr)
+		}
+
 	}
+	return lgr
 }
 
-func (l *Logger) logf(format string, args ...any) {
-	_, _ = fmt.Fprintf(l.output, format+"\n", args...)
-}
-
-// Debugf formats and prints a message (like fmt.Printf) if the log level is debug or higher.
-func (l *Logger) Debugf(format string, args ...any) {
+func (l *Logger) logf(msg string, args ...any) {
 
 	if l.output == nil {
 		l.output = os.Stdout
 	}
 
-	if l.threshold <= LevelDebug {
-		_, _ = fmt.Printf(format+"\n", args...)
+	_, _ = fmt.Fprintf(l.output, msg+"\n", args...)
+}
+
+func (l *Logger) Logf(lvl Level, msg string, args ...any) {
+	if l.threshold > lvl {
+		return
 	}
 
+	if len(l.msgFormattingOptions) > 0 {
+		for _, logMsgConfigFunc := range l.msgFormattingOptions {
+			msg = logMsgConfigFunc(msg, lvl)
+		}
+	}
+
+	l.logf(msg, args...)
 }
 
-// Infof formats and prints a message (like fmt.Printf) if the log level is info or higher.
-func (l *Logger) Infof(format string, args ...any) {
-	// to do
+// Debugf msgs and prints a message (like fmt.Printf) if the log level is debug or higher.
+func (l *Logger) Debugf(msg string, args ...any) {
+	l.Logf(LevelDebug, msg, args...)
+
 }
 
-// Errorf formats and prints a message (like fmt.Printf) if the log level is error or higher.
-func (l *Logger) Errorf(format string, args ...any) {
-	// to do
+// Infof msgs and prints a message (like fmt.Printf) if the log level is info or higher.
+func (l *Logger) Infof(msg string, args ...any) {
+	l.Logf(LevelInfo, msg, args...)
+}
+
+// Errorf msgs and prints a message (like fmt.Printf) if the log level is error or higher.
+func (l *Logger) Errorf(msg string, args ...any) {
+	l.Logf(LevelError, msg, args...)
 }

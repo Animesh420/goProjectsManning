@@ -11,3 +11,9 @@ const (
 	// LevelError represents the highest logging level, only to be used to trace errors
 	LevelError
 )
+
+var logPrefixMap = map[Level]string{
+	LevelDebug: "DEBUG",
+	LevelInfo:  "INFO",
+	LevelError: "ERROR",
+}
