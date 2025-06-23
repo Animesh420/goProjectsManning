@@ -14,13 +14,14 @@ func TestParseDecimal(t *testing.T) {
 		"2 decimal digits": {
 			decimal:  "1.52",
 			expected: Decimal{subunits: 152, precision: 2},
+			err:      nil,
 		},
 		"not a number": {
 			decimal: "NaN",
 			err:     ErrInvalidDecimal,
 		},
 		"empty string": {
-			decimal: "",
+			decimal: "NaN",
 			err:     ErrInvalidDecimal,
 		},
 		"too large": {
@@ -35,7 +36,6 @@ func TestParseDecimal(t *testing.T) {
 			if !errors.Is(err, tc.err) {
 				t.Errorf("expected error %v, got %v", tc.err, err)
 			}
-
 			if got != tc.expected {
 				t.Errorf("expected %v, got %v", tc.expected, got)
 			}

@@ -7,27 +7,38 @@ import (
 )
 
 const (
+	// ErrInvalidDecimal is returned if the decimal is malformed.
 	ErrInvalidDecimal = Error("unable to convert the decimal")
-	ErrTooLarge       = Error("quantity over 10^12 is too large")
+
+	// ErrTooLarge is returned if the quantity is too large
+	// this would cause floating point precision errors.
+	ErrTooLarge = Error("quantity over 10^12 is too large")
 )
 
-type Decimal struct {
-	// subunits is the amount  of subunits
-	// Multiply it with precision to get the real value
-	subunits int64
+// maxDecimal value is a thousand billion, using the short scale -- 10 ^ 12.
+const maxDecimal = 1e12
 
-	// Number of "subunits" in a unit, expreseesed as a power of 10,
+// Decimal is capable of storing a floating point value with a fixed precision.
+// example: 1.52 = 152 * 10 ^ (-2) will be stored as (152, 2)
+type Decimal struct {
+
+	//  subunits is the amount of subunits
+	// Multiply it by the precision to get the real value
+	subunits int64
+	// Number of subunits in a unit, expressed as a power of 10.
 	precision byte
 }
 
-// maxDecimal value is a thousand billion, using the short scale
-const maxDecimal = 1e12
+// ParseDecimal converts a string into its Decimal representation
+// It assumes there is up to one decimal separator, and the separator is '.' (full stop character).
 
 func ParseDecimal(value string) (Decimal, error) {
 	intPart, fracPart, _ := strings.Cut(value, ".")
+
 	subunits, err := strconv.ParseInt(intPart+fracPart, 10, 64)
+
 	if err != nil {
-		return Decimal{}, fmt.Errorf("%w: %s", ErrInvalidDecimal, err.Error())
+		return Decimal{}, fmt.Errorf("%w:%s", ErrInvalidDecimal, err.Error())
 	}
 
 	if subunits > maxDecimal {
@@ -39,6 +50,9 @@ func ParseDecimal(value string) (Decimal, error) {
 }
 
 func (d *Decimal) simplify() {
+	// Using %10 returns the last digit in base 10 of a number.
+	// If the precision is positive, that digit belongs to the right side of the decimal separator
+
 	for d.subunits%10 == 0 && d.precision > 0 {
 		d.precision--
 		d.subunits /= 10

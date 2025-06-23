@@ -1,20 +1,20 @@
 package money_test
 
 import (
-	"learngo-pockets/moneyconvertor/money"
+	"learngo-pockets/moneyconverter/money"
 	"reflect"
 	"testing"
 )
 
 func TestConvert(t *testing.T) {
 	tt := map[string]struct {
-		amount  money.Amount
+		amount   money.Amount
 		to       money.Currency
 		validate func(t *testing.T, got money.Amount, err error)
 	}{
 		"34.98 USD to EUR": {
-			amount: money.Amount{},
-			to:      money.Currency{},
+			amount: mustParseAmount(t, "34.98", "USD"),
+			to:     mustParseCurrency(t, "EUR"),
 			validate: func(t *testing.T, got money.Amount, err error) {
 				if err != nil {
 					t.Errorf("expected no error, got %s", err.Error())
@@ -23,6 +23,7 @@ func TestConvert(t *testing.T) {
 				if !reflect.DeepEqual(got, expected) {
 					t.Errorf("expected %v, got %v", expected, got)
 				}
+
 			},
 		},
 	}
@@ -33,4 +34,36 @@ func TestConvert(t *testing.T) {
 			tc.validate(t, got, err)
 		})
 	}
+}
+
+func mustParseCurrency(t *testing.T, code string) money.Currency {
+	t.Helper()
+
+	currency, err := money.ParseCurrency(code)
+
+	if err != nil {
+		t.Fatalf("cannot parse currency %s code", code)
+	}
+	return currency
+}
+
+func mustParseAmount(t *testing.T, value string, code string) money.Amount {
+	t.Helper()
+
+	n, err := money.ParseDecimal(value)
+	if err != nil {
+		t.Fatalf("invalid number: %s", value)
+	}
+
+	currency, err := money.ParseCurrency(code)
+	if err != nil {
+		t.Fatalf("invalid currency code: %s", code)
+	}
+
+	amount, err := money.NewAmount(n, currency)
+	if err != nil {
+		t.Fatalf("cannot create amount with value %v and currency code %s", n, code)
+	}
+
+	return amount
 }
