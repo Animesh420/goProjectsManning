@@ -30,3 +30,8 @@ func ParseCurrency(code string) (Currency, error) {
 func (c Currency) String() string {
 	return c.code
 }
+
+// To return the code
+func (c Currency) Code() string {
+	return c.code
+}

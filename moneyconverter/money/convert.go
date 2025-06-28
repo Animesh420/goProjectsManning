@@ -1,12 +1,27 @@
 package money
 
+import "fmt"
+
 // ExchangeRate represents a rate to convert from one currency
 type ExchangeRate Decimal
 
+func GetExchangeRate(value string) ExchangeRate {
+	unitExchangeRate, err := ParseDecimal(value)
+	if err != nil {
+		panic("Unable to create unit exchange rate")
+	}
+	return ExchangeRate(unitExchangeRate)
+}
+
 // Convert applies the change rate to convert an amount to a target currency
-func Convert(amount Amount, to Currency) (Amount, error) {
+func Convert(amount Amount, to Currency, rates exchangeRates) (Amount, error) {
+
+	r, err := rates.FetchExchangeRate(amount.currency, to)
+	if err != nil {
+		return Amount{}, fmt.Errorf("cannot get change rate: %w", err)
+	}
 	// Convert to the target currency applying to fetched change rate
-	convertedValue := applyExchangeRate(amount, to, ExchangeRate{subunits: 2, precision: 0})
+	convertedValue := applyExchangeRate(amount, to, r)
 
 	// Validate the converted amount is in the handled bounded range
 	if err := convertedValue.validate(); err != nil {

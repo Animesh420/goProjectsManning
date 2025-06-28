@@ -5,6 +5,15 @@ import (
 	"testing"
 )
 
+type stubRate struct {
+	rate ExchangeRate
+	err  error
+}
+
+func (m stubRate) FetchExchangeRate(_, _ Currency) (ExchangeRate, error) {
+	return m.rate, m.err
+}
+
 func TestConvert(t *testing.T) {
 	tt := map[string]struct {
 		amount   Amount
@@ -35,7 +44,7 @@ func TestConvert(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			got, err := Convert(tc.amount, tc.to)
+			got, err := Convert(tc.amount, tc.to, stubRate{rate: ExchangeRate{subunits: 2, precision: 0}})
 			tc.validate(t, got, err)
 		})
 	}

@@ -47,7 +47,11 @@ func ParseDecimal(value string) (Decimal, error) {
 	}
 
 	precision := byte(len(fracPart))
-	return Decimal{subunits: subunits, precision: precision}, nil
+	dec := Decimal{subunits: subunits, precision: precision}
+
+	// Clean the representation by removing trailing zeros
+	dec.simplify()
+	return dec, nil
 }
 
 func (d *Decimal) simplify() {
